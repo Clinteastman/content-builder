@@ -1,8 +1,24 @@
 import { useRef } from 'react'
 import { DndProvider, useDrag, useDrop } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { TextField, Select, MenuItem, FormControlLabel, Checkbox } from '@mui/material'
+import { GripVertical } from 'lucide-react'
 import type { InputField } from '../types'
+import { Card, CardContent } from './ui/card'
+import { Input } from './ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select'
+import { Switch } from './ui/switch'
+import {
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormDescription,
+} from './ui/form'
 
 interface DraggableFieldProps {
   field: InputField
@@ -11,15 +27,20 @@ interface DraggableFieldProps {
   onUpdate: (field: InputField) => void
 }
 
-const DraggableField: React.FC<DraggableFieldProps> = ({ field, index, moveField, onUpdate }) => {
+const DraggableField: React.FC<DraggableFieldProps> = ({
+  field,
+  index,
+  moveField,
+  onUpdate,
+}) => {
   const ref = useRef<HTMLDivElement>(null)
 
   const [{ isDragging }, drag] = useDrag({
     type: 'field',
     item: () => ({ index }),
     collect: (monitor) => ({
-      isDragging: monitor.isDragging()
-    })
+      isDragging: monitor.isDragging(),
+    }),
   })
 
   const [, drop] = useDrop({
@@ -32,57 +53,95 @@ const DraggableField: React.FC<DraggableFieldProps> = ({ field, index, moveField
 
       moveField(dragIndex, hoverIndex)
       item.index = hoverIndex
-    }
+    },
   })
 
   drag(drop(ref))
 
   return (
-    <div
+    <Card
       ref={ref}
-      style={{ opacity: isDragging ? 0.5 : 1 }}
-      className="flex gap-4 p-4 border rounded-lg mb-2 bg-white cursor-move"
+      className={`mb-4 ${
+        isDragging ? 'opacity-50' : ''
+      }`}
     >
-      <TextField
-        label="Label"
-        value={field.label}
-        onChange={(e) => onUpdate({ ...field, label: e.target.value })}
-        size="small"
-        className="flex-1"
-      />
-      <Select
-        value={field.type}
-        onChange={(e) => onUpdate({ ...field, type: e.target.value as InputField['type'] })}
-        size="small"
-        className="w-32"
-      >
-        <MenuItem value="text">Text</MenuItem>
-        <MenuItem value="number">Number</MenuItem>
-        <MenuItem value="select">Select</MenuItem>
-      </Select>
-      {field.type === 'select' && (
-        <TextField
-          label="Options (comma-separated)"
-          value={field.options?.join(', ') || ''}
-          onChange={(e) => onUpdate({
-            ...field,
-            options: e.target.value.split(',').map(opt => opt.trim())
-          })}
-          size="small"
-          className="flex-1"
-        />
-      )}
-      <FormControlLabel
-        control={
-          <Checkbox
-            checked={field.required}
-            onChange={(e) => onUpdate({ ...field, required: e.target.checked })}
-            size="small"
-          />
-        }
-        label="Required"
-      />
-    </div>
+      <CardContent className="flex items-start gap-4 pt-4">
+        <div className="mt-3 cursor-move">
+          <GripVertical className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <div className="flex-1 space-y-4">
+          <FormItem>
+            <FormLabel>Field Label</FormLabel>
+            <FormControl>
+              <Input
+                value={field.label}
+                onChange={(e) => onUpdate({ ...field, label: e.target.value })}
+                placeholder="Enter field label"
+              />
+            </FormControl>
+          </FormItem>
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormItem>
+              <FormLabel>Field Type</FormLabel>
+              <Select
+                value={field.type}
+                onValueChange={(value: 'text' | 'number' | 'select') =>
+                  onUpdate({ ...field, type: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">Text</SelectItem>
+                  <SelectItem value="number">Number</SelectItem>
+                  <SelectItem value="select">Select</SelectItem>
+                </SelectContent>
+              </Select>
+            </FormItem>
+
+            <FormItem>
+              <FormLabel>Required Field</FormLabel>
+              <FormControl>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    checked={field.required}
+                    onCheckedChange={(checked) =>
+                      onUpdate({ ...field, required: checked })
+                    }
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {field.required ? 'Required' : 'Optional'}
+                  </span>
+                </div>
+              </FormControl>
+            </FormItem>
+          </div>
+
+          {field.type === 'select' && (
+            <FormItem>
+              <FormLabel>Options</FormLabel>
+              <FormControl>
+                <Input
+                  value={field.options?.join(', ') || ''}
+                  onChange={(e) =>
+                    onUpdate({
+                      ...field,
+                      options: e.target.value.split(',').map((opt) => opt.trim()),
+                    })
+                  }
+                  placeholder="Enter options (comma-separated)"
+                />
+              </FormControl>
+              <FormDescription>
+                Enter options separated by commas
+              </FormDescription>
+            </FormItem>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -91,7 +150,10 @@ interface InputFieldBuilderProps {
   onFieldsChange: (fields: InputField[]) => void
 }
 
-export const InputFieldBuilder: React.FC<InputFieldBuilderProps> = ({ fields, onFieldsChange }) => {
+export const InputFieldBuilder: React.FC<InputFieldBuilderProps> = ({
+  fields,
+  onFieldsChange,
+}) => {
   const moveField = (dragIndex: number, hoverIndex: number) => {
     const newFields = [...fields]
     const dragField = newFields[dragIndex]
@@ -118,6 +180,13 @@ export const InputFieldBuilder: React.FC<InputFieldBuilderProps> = ({ fields, on
             onUpdate={(updatedField) => updateField(index, updatedField)}
           />
         ))}
+        {fields.length === 0 && (
+          <Card>
+            <CardContent className="p-6 text-center text-muted-foreground">
+              No input fields defined. Add placeholders in your template using {'{placeholder}'} syntax.
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DndProvider>
   )

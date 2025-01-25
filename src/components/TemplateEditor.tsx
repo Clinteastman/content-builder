@@ -4,6 +4,7 @@ import { EditorView } from '@codemirror/view'
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { tags as t } from '@lezer/highlight'
 import useTemplateStore from '../store/templateStore'
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card'
 
 const placeholderHighlight = HighlightStyle.define([{
   tag: [t.special(t.name)],
@@ -45,7 +46,7 @@ export const TemplateEditor: React.FC = () => {
       },
       '.cm-special': {
         color: '#2563eb',
-        backgroundColor: '#dbeafe',
+        backgroundColor: 'rgb(239 246 255)',
         padding: '0 2px',
         borderRadius: '2px'
       }
@@ -54,26 +55,38 @@ export const TemplateEditor: React.FC = () => {
 
   if (!activeTemplate) {
     return (
-      <div className="border rounded-lg p-4 bg-gray-50">
-        <p className="text-gray-500">Select a template to edit</p>
-      </div>
+      <Card className="bg-muted/50">
+        <CardContent className="flex items-center justify-center h-[400px]">
+          <p className="text-muted-foreground">
+            Select a template to edit
+          </p>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <CodeMirror
-        value={activeTemplate.content}
-        onChange={handleChange}
-        extensions={extensions}
-        placeholder="Enter your template content here. Use {placeholders} for dynamic content."
-        basicSetup={{
-          lineNumbers: true,
-          highlightActiveLineGutter: true,
-          highlightActiveLine: true,
-          bracketMatching: true,
-        }}
-      />
-    </div>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle>Template Editor</CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="border rounded-md overflow-hidden">
+          <CodeMirror
+            value={activeTemplate.content}
+            onChange={handleChange}
+            extensions={extensions}
+            placeholder="Enter your template content here. Use {placeholders} for dynamic content."
+            className="min-h-[400px]"
+            basicSetup={{
+              lineNumbers: true,
+              highlightActiveLineGutter: true,
+              highlightActiveLine: true,
+              bracketMatching: true,
+            }}
+          />
+        </div>
+      </CardContent>
+    </Card>
   )
 }

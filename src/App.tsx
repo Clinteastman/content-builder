@@ -1,34 +1,23 @@
 import { useState } from 'react'
+import { Plus } from 'lucide-react'
+import { Button } from './components/ui/button'
 import {
-  AppBar,
-  Box,
-  Button,
-  CssBaseline,
   Dialog,
-  DialogActions,
   DialogContent,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-  TextField,
-  ThemeProvider,
-  Toolbar,
-  Typography,
-  createTheme
-} from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
+} from './components/ui/dialog'
+import { Input } from './components/ui/input'
+import { Toaster } from './components/ui/toaster'
+import { FormItem, FormLabel, FormControl } from './components/ui/form'
+import { Card, CardContent } from './components/ui/card'
 import { TemplateEditor } from './components/TemplateEditor'
 import { InputFieldBuilder } from './components/InputFieldBuilder'
 import { PreviewPane } from './components/PreviewPane'
 import { ImportExportControls } from './components/ImportExportControls'
 import { useTemplateInputs } from './hooks/useTemplateInputs'
 import useTemplateStore from './store/templateStore'
-
-const drawerWidth = 240
-const theme = createTheme()
 
 export default function App() {
   const { templates, activeTemplate, addTemplate, setActiveTemplate } = useTemplateStore()
@@ -53,57 +42,46 @@ export default function App() {
   }
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-          <Toolbar>
-            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-              Prompt Builder
-            </Typography>
+    <div className="min-h-screen bg-background">
+      <div className="border-b">
+        <div className="flex h-16 items-center px-4">
+          <div className="flex items-center justify-between flex-1">
+            <h2 className="text-lg font-semibold">Prompt Builder</h2>
             <ImportExportControls />
-          </Toolbar>
-        </AppBar>
+          </div>
+        </div>
+      </div>
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-64 border-r bg-muted/40 min-h-[calc(100vh-4rem)] p-4">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start mb-4"
+            onClick={() => setNewTemplateDialogOpen(true)}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            New Template
+          </Button>
+          <div className="space-y-1">
+            {templates.map((template) => (
+              <Button
+                key={template.id}
+                variant={template.id === activeTemplate?.id ? "secondary" : "ghost"}
+                className="w-full justify-start font-normal"
+                onClick={() => setActiveTemplate(template)}
+              >
+                {template.name}
+              </Button>
+            ))}
+          </div>
+        </div>
 
-        <Drawer
-          variant="permanent"
-          sx={{
-            width: drawerWidth,
-            flexShrink: 0,
-            '& .MuiDrawer-paper': {
-              width: drawerWidth,
-              boxSizing: 'border-box',
-            },
-          }}
-        >
-          <Toolbar />
-          <Box sx={{ overflow: 'auto' }}>
-            <List>
-              <ListItem disablePadding>
-                <ListItemButton onClick={() => setNewTemplateDialogOpen(true)}>
-                  <AddIcon sx={{ mr: 1 }} />
-                  <ListItemText primary="New Template" />
-                </ListItemButton>
-              </ListItem>
-              {templates.map((template) => (
-                <ListItem key={template.id} disablePadding>
-                  <ListItemButton
-                    selected={template.id === activeTemplate?.id}
-                    onClick={() => setActiveTemplate(template)}
-                  >
-                    <ListItemText primary={template.name} />
-                  </ListItemButton>
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        </Drawer>
-
-        <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-          <Toolbar />
+        {/* Main content */}
+        <div className="flex-1 p-6">
           {activeTemplate ? (
-            <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: '1fr 1fr' }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-6">
                 <TemplateEditor />
                 <InputFieldBuilder
                   fields={fields}
@@ -116,73 +94,95 @@ export default function App() {
                     }
                   }}
                 />
-              </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Box sx={{ display: 'grid', gap: 2 }}>
-                  {fields.map((field) => (
-                    <TextField
-                      key={field.key}
-                      label={field.label}
-                      value={inputs[field.key] || ''}
-                      onChange={(e) => updateInput(field.key, e.target.value)}
-                      required={field.required}
-                      type={field.type === 'number' ? 'number' : 'text'}
-                      select={field.type === 'select'}
-                      SelectProps={{ native: true }}
-                    >
-                      {field.type === 'select' && (
-                        <>
-                          <option value="">Select an option</option>
-                          {field.options?.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </>
-                      )}
-                    </TextField>
-                  ))}
-                </Box>
+              </div>
+              <div className="space-y-6">
+                {fields.length > 0 ? (
+                  <Card>
+                    <CardContent className="p-6 space-y-4">
+                      {fields.map((field) => (
+                        <FormItem key={field.key}>
+                          <FormLabel>
+                            {field.label}
+                            {field.required && (
+                              <span className="text-destructive ml-1">*</span>
+                            )}
+                          </FormLabel>
+                          <FormControl>
+                            {field.type === 'select' ? (
+                              <select
+                                value={inputs[field.key] || ''}
+                                onChange={(e) => updateInput(field.key, e.target.value)}
+                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                              >
+                                <option value="">Select an option</option>
+                                {field.options?.map((option) => (
+                                  <option key={option} value={option}>
+                                    {option}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <Input
+                                type={field.type}
+                                value={inputs[field.key] || ''}
+                                onChange={(e) => updateInput(field.key, e.target.value)}
+                                required={field.required}
+                              />
+                            )}
+                          </FormControl>
+                        </FormItem>
+                      ))}
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardContent className="p-6 text-center text-muted-foreground">
+                      Add {'{placeholders}'} in your template to create input fields
+                    </CardContent>
+                  </Card>
+                )}
                 <PreviewPane content={output} isValid={isValid} />
-              </Box>
-            </Box>
+              </div>
+            </div>
           ) : (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: 'calc(100vh - 128px)',
-              }}
-            >
-              <Typography color="text.secondary">
-                Select a template or create a new one to get started
-              </Typography>
-            </Box>
+            <div className="flex h-[calc(100vh-8rem)] items-center justify-center">
+              <div className="text-center">
+                <h3 className="text-lg font-medium">No template selected</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Select a template or create a new one to get started
+                </p>
+              </div>
+            </div>
           )}
-        </Box>
+        </div>
+      </div>
 
-        <Dialog
-          open={isNewTemplateDialogOpen}
-          onClose={() => setNewTemplateDialogOpen(false)}
-        >
-          <DialogTitle>Create New Template</DialogTitle>
-          <DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Template Name"
-              fullWidth
-              value={newTemplateName}
-              onChange={(e) => setNewTemplateName(e.target.value)}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setNewTemplateDialogOpen(false)}>Cancel</Button>
+      <Dialog open={isNewTemplateDialogOpen} onOpenChange={setNewTemplateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Template</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <FormItem>
+              <FormLabel>Template Name</FormLabel>
+              <FormControl>
+                <Input
+                  value={newTemplateName}
+                  onChange={(e) => setNewTemplateName(e.target.value)}
+                  placeholder="Enter template name"
+                />
+              </FormControl>
+            </FormItem>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewTemplateDialogOpen(false)}>
+              Cancel
+            </Button>
             <Button onClick={handleCreateTemplate}>Create</Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </ThemeProvider>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Toaster />
+    </div>
   )
 }

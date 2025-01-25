@@ -1,9 +1,9 @@
-import { useRef, useState } from 'react'
-import { Button, Stack, Snackbar, Alert } from '@mui/material'
-import UploadIcon from '@mui/icons-material/Upload'
-import DownloadIcon from '@mui/icons-material/Download'
+import { useRef } from 'react'
+import { Upload, Download } from 'lucide-react'
 import { z } from 'zod'
 import useTemplateStore from '../store/templateStore'
+import { Button } from './ui/button'
+import { useToast } from '../hooks/useToast'
 
 // Zod schema for template validation
 const inputFieldSchema = z.object({
@@ -25,10 +25,10 @@ const templateSchema = z.object({
 
 const templatesSchema = z.array(templateSchema)
 
-export const ImportExportControls: React.FC = () => {
+export const ImportExportControls = () => {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { templates, importTemplates } = useTemplateStore()
-  const [error, setError] = useState<string | null>(null)
+  const { toast } = useToast()
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -40,9 +40,17 @@ export const ImportExportControls: React.FC = () => {
       const validated = templatesSchema.parse(json)
       importTemplates(validated)
       event.target.value = '' // Reset file input
+      toast({
+        title: "Import successful",
+        description: `Imported ${validated.length} templates`,
+      })
     } catch (err) {
       console.error('Import error:', err)
-      setError('Invalid template file format')
+      toast({
+        variant: "destructive",
+        title: "Import failed",
+        description: "Invalid template file format",
+      })
     }
   }
 
@@ -66,49 +74,47 @@ export const ImportExportControls: React.FC = () => {
       link.click()
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
+      
+      toast({
+        title: "Export successful",
+        description: `Exported ${templates.length} templates`,
+      })
     } catch (err) {
       console.error('Export error:', err)
-      setError('Failed to export templates')
+      toast({
+        variant: "destructive",
+        title: "Export failed",
+        description: "Failed to export templates",
+      })
     }
   }
 
   return (
-    <>
-      <Stack direction="row" spacing={2}>
-        <Button
-          variant="outlined"
-          startIcon={<UploadIcon />}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          Import
-        </Button>
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleImport}
-          accept="application/json"
-          style={{ display: 'none' }}
-        />
-        <Button
-          variant="outlined"
-          startIcon={<DownloadIcon />}
-          onClick={handleExport}
-          disabled={templates.length === 0}
-        >
-          Export
-        </Button>
-      </Stack>
-
-      <Snackbar
-        open={!!error}
-        autoHideDuration={6000}
-        onClose={() => setError(null)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+    <div className="flex gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => fileInputRef.current?.click()}
       >
-        <Alert severity="error" onClose={() => setError(null)}>
-          {error}
-        </Alert>
-      </Snackbar>
-    </>
+        <Upload className="h-4 w-4 mr-2" />
+        Import
+      </Button>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleImport}
+        accept="application/json"
+        className="hidden"
+      />
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleExport}
+        disabled={templates.length === 0}
+      >
+        <Download className="h-4 w-4 mr-2" />
+        Export
+      </Button>
+    </div>
   )
 }

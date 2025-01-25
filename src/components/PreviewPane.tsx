@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Paper, IconButton, Snackbar, Typography } from '@mui/material'
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
-import CheckIcon from '@mui/icons-material/Check'
+import { Copy, Check } from 'lucide-react'
+import { Button } from './ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 
 interface PreviewPaneProps {
   content: string
@@ -22,44 +22,35 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ content, isValid }) =>
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <Typography variant="h6" component="h2">
-          Preview
-        </Typography>
-        <IconButton
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle>Preview</CardTitle>
+        <Button
           onClick={handleCopy}
           disabled={!isValid}
-          color={copied ? 'success' : 'default'}
-          aria-label="Copy to clipboard"
+          variant="ghost"
+          size="icon"
+          className={copied ? 'text-green-500' : ''}
         >
-          {copied ? <CheckIcon /> : <ContentCopyIcon />}
-        </IconButton>
-      </div>
-
-      <Paper
-        elevation={0}
-        variant="outlined"
-        className={`p-4 ${!isValid ? 'bg-gray-50' : 'bg-white'}`}
-      >
+          {copied ? (
+            <Check className="h-4 w-4" />
+          ) : (
+            <Copy className="h-4 w-4" />
+          )}
+          <span className="sr-only">Copy to clipboard</span>
+        </Button>
+      </CardHeader>
+      <CardContent>
         {isValid ? (
-          <pre className="whitespace-pre-wrap font-mono text-sm">
+          <pre className="font-mono text-sm whitespace-pre-wrap">
             {content}
           </pre>
         ) : (
-          <Typography color="text.secondary" className="italic">
+          <p className="text-sm text-muted-foreground italic">
             Please fill in all required fields to preview the template
-          </Typography>
+          </p>
         )}
-      </Paper>
-
-      <Snackbar
-        open={copied}
-        autoHideDuration={2000}
-        onClose={() => setCopied(false)}
-        message="Copied to clipboard"
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      />
-    </div>
+      </CardContent>
+    </Card>
   )
 }
