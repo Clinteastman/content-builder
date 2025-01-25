@@ -1,7 +1,12 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { type PersistStorage, persist } from 'zustand/middleware'
 import { nanoid } from 'nanoid'
 import type { TemplateStore } from '../types'
+
+// Type for persisted state subset
+type PersistedState = {
+  templates: TemplateStore['templates']
+}
 
 const useTemplateStore = create<TemplateStore>()(
   persist(
@@ -44,10 +49,36 @@ const useTemplateStore = create<TemplateStore>()(
       }))
     }),
     {
-      name: 'template-storage',
-      skipHydration: true, // Prevents hydration mismatch with Date objects
+      name: 'template-storage-v2',
+      storage: createJSONStorage(),
+      partialize: (state) => ({
+        templates: state.templates
+      })
     }
   )
 )
+
+// Helper to create storage with proper Date handling
+function createJSONStorage(): PersistStorage<PersistedState> {
+  return {
+        getItem: (name) => {
+          try {
+            const str = localStorage.getItem(name)
+            return str ? JSON.parse(str, (key, value) => 
+              key.endsWith('At') ? new Date(value) : value
+            ) : null
+          } catch (error) {
+            console.error('Failed to parse persisted state:', error)
+            return null
+          }
+        },
+        setItem: (name, value) => 
+          localStorage.setItem(name, JSON.stringify(value, (key, value) =>
+            value instanceof Date ? value.toISOString() : value
+          )),
+        removeItem: (name) => localStorage.removeItem(name)
+  }
+}
+
 
 export default useTemplateStore
