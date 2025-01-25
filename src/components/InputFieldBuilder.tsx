@@ -19,6 +19,7 @@ import {
   FormControl,
   FormDescription,
 } from './ui/form'
+import useTemplateStore from '../store/templateStore'
 
 interface DraggableFieldProps {
   field: InputField
@@ -33,6 +34,7 @@ const DraggableField: React.FC<DraggableFieldProps> = ({
   moveField,
   onUpdate,
 }) => {
+  const setFieldType = useTemplateStore(state => state.setFieldType)
   const ref = useRef<HTMLDivElement>(null)
 
   const [{ isDragging }, drag] = useDrag({
@@ -86,8 +88,10 @@ const DraggableField: React.FC<DraggableFieldProps> = ({
               <FormLabel>Field Type</FormLabel>
               <Select
                 value={field.type}
-                onValueChange={(value: 'text' | 'number' | 'select') =>
+                onValueChange={(value: 'text' | 'number' | 'select') => {
+                  setFieldType(field.key, value)
                   onUpdate({ ...field, type: value })
+                }
                 }
               >
                 <SelectTrigger>

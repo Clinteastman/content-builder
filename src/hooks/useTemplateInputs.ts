@@ -1,10 +1,15 @@
 import { useMemo, useState } from 'react'
 import { useDebounce } from 'use-debounce'
 import type { InputField } from '../types'
+import useTemplateStore from '../store/templateStore'
 
-export const useTemplateInputs = (content: string) => {
+export const useTemplateInputs = (content: string, templateId?: string) => {
   const [inputs, setInputs] = useState<Record<string, string>>({})
   const [debouncedInputs] = useDebounce(inputs, 300)
+
+  const existingTemplate = useTemplateStore(state => 
+    templateId ? state.templates.find(t => t.id === templateId) : state.activeTemplate
+  )
 
   // Parse placeholders from template content using regex
   const placeholders = useMemo(() => {
@@ -14,15 +19,21 @@ export const useTemplateInputs = (content: string) => {
   }, [content])
 
   // Generate input fields based on placeholders
-  const fields = useMemo<InputField[]>(() => 
-    placeholders.map(key => ({
-      key,
-      label: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
-      type: 'text',
-      required: true,
-      value: inputs[key] || ''
-    }))
-  , [placeholders, inputs])
+  const fields = useMemo<InputField[]>(() => {
+    return placeholders.map(key => {
+      // Try to find existing field to preserve type
+      const existingField = existingTemplate?.inputs?.find(f => f.key === key)
+      
+      return {
+        key,
+        label: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+        type: existingField?.type || 'text',
+        required: existingField?.required ?? true,
+        options: existingField?.options,
+        value: inputs[key] || ''
+      }
+    })
+  }, [placeholders, inputs, existingTemplate])
 
   // Update input values
   const updateInput = (key: string, value: string) => {

@@ -1,12 +1,18 @@
 import { create } from 'zustand'
 import { type PersistStorage, persist } from 'zustand/middleware'
 import { nanoid } from 'nanoid'
-import type { TemplateStore } from '../types'
+import type { TemplateStore, PromptTemplate } from '../types'
 
 // Type for persisted state subset
 type PersistedState = {
   templates: TemplateStore['templates']
 }
+
+// Helper function to update both active template and templates array
+const updateTemplateState = (state: TemplateStore, updatedTemplate: PromptTemplate): Partial<TemplateStore> => ({
+  templates: state.templates.map(template => template.id === updatedTemplate.id ? updatedTemplate : template),
+  activeTemplate: state.activeTemplate?.id === updatedTemplate.id ? updatedTemplate : state.activeTemplate
+})
 
 const useTemplateStore = create<TemplateStore>()(
   persist(
@@ -14,6 +20,22 @@ const useTemplateStore = create<TemplateStore>()(
       templates: [],
       activeTemplate: null,
       setActiveTemplate: (template) => set({ activeTemplate: template }),
+      setFieldType: (key: string, type: 'text' | 'number' | 'select') => set((state) => {
+        if (!state.activeTemplate) return state
+        
+        const updatedTemplate = {
+          ...state.activeTemplate,
+          inputs: state.activeTemplate.inputs.map(field =>
+            field.key === key ? { ...field, type } : field
+          )
+        }
+        
+        if (!state.activeTemplate?.id) return state
+        updatedTemplate.updatedAt = new Date()
+
+        // Update both active template and templates array
+        return updateTemplateState(state, updatedTemplate)
+      }),
       addTemplate: (template) => set((state) => ({
         templates: [...state.templates, {
           ...template,

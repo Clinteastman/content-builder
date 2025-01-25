@@ -20,6 +20,7 @@ export interface TemplateStore {
   templates: PromptTemplate[];
   activeTemplate: PromptTemplate | null;
   setActiveTemplate: (template: PromptTemplate | null) => void;
+  setFieldType: (key: string, type: 'text' | 'number' | 'select') => void;
   addTemplate: (template: Omit<PromptTemplate, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateTemplate: (id: string, template: Partial<PromptTemplate>) => void;
   deleteTemplate: (id: string) => void;
