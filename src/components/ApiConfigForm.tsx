@@ -6,6 +6,7 @@ import { Label } from './ui/label'
 import { 
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue
@@ -30,9 +31,8 @@ export function ApiConfigForm({ config, onSubmit, onCancel }: ApiConfigFormProps
   const [name, setName] = useState(config?.name || '')
   const [provider, setProvider] = useState<ApiConfig['provider']>(config?.provider || 'custom')
   const [url, setUrl] = useState(config?.url || (provider !== 'custom' ? DEFAULT_PROVIDER_URLS[provider] : ''))
-  const [authType, setAuthType] = useState<ApiConfig['authType']>(config?.authType || (provider !== 'custom' ? 'bearer' : 'none'))
-  const [authKey, setAuthKey] = useState(config?.authKey || '')
-  const [authValue, setAuthValue] = useState(config?.authValue || '')
+  const [apiKey, setApiKey] = useState(config?.authValue || '')
+  const [authType] = useState<ApiConfig['authType']>('bearer') // Always use bearer auth
   const [headers, setHeaders] = useState<ApiHeaderConfig[]>(config?.headers || [])
   const [isDefault, setIsDefault] = useState(config?.isDefault || false)
 
@@ -54,9 +54,9 @@ export function ApiConfigForm({ config, onSubmit, onCancel }: ApiConfigFormProps
     setProvider(newProvider)
     if (newProvider !== 'custom') {
       setUrl(DEFAULT_PROVIDER_URLS[newProvider])
-      setAuthType('bearer')
     } else {
-      setAuthType('none')
+      setUrl('')
+      setApiKey('')
     }
   }
 
@@ -67,8 +67,7 @@ export function ApiConfigForm({ config, onSubmit, onCancel }: ApiConfigFormProps
       provider,
       url,
       authType,
-      authKey,
-      authValue,
+      authValue: apiKey,
       headers: headers.filter(h => h.key && h.value),
       isDefault
     }
@@ -79,6 +78,14 @@ export function ApiConfigForm({ config, onSubmit, onCancel }: ApiConfigFormProps
       onSubmit(formData)
     }
   }
+
+  // Debug log
+  console.log('Form state:', {
+    provider,
+    url,
+    authType,
+    apiKeyPresent: Boolean(apiKey)
+  })
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 text-gray-900 dark:text-gray-50">
@@ -104,11 +111,13 @@ export function ApiConfigForm({ config, onSubmit, onCancel }: ApiConfigFormProps
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="openai">OpenAI</SelectItem>
-                <SelectItem value="anthropic">Anthropic</SelectItem>
-                <SelectItem value="deepseek">DeepSeek</SelectItem>
-                <SelectItem value="gemini">Google Gemini</SelectItem>
-                <SelectItem value="custom">Custom</SelectItem>
+                <SelectGroup>
+                  <SelectItem value="openai">OpenAI</SelectItem>
+                  <SelectItem value="anthropic">Anthropic</SelectItem>
+                  <SelectItem value="deepseek">DeepSeek</SelectItem>
+                  <SelectItem value="gemini">Google Gemini</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
@@ -125,93 +134,40 @@ export function ApiConfigForm({ config, onSubmit, onCancel }: ApiConfigFormProps
               required
               readOnly={provider !== 'custom'}
             />
-            {provider !== 'custom' && (
-              <CardDescription className="text-sm">
-                Using predefined API URL for {provider === 'openai' ? 'OpenAI' :
-                  provider === 'anthropic' ? 'Anthropic' :
-                  provider === 'deepseek' ? 'DeepSeek' :
-                  'Google Gemini'}
-              </CardDescription>
-            )}
+            <CardDescription className="text-sm">
+              Enter the base URL for your API endpoint
+            </CardDescription>
           </div>
         )}
-            <CardDescription className="text-sm">
-              {provider === 'custom' ? 'Enter the base URL for your API endpoint' :
-               provider === 'openai' ? 'Uses OpenAI API key (sk-...)' :
-               provider === 'anthropic' ? 'Uses Anthropic API key' :
-               provider === 'deepseek' ? 'Uses DeepSeek API key' :
-               provider === 'gemini' ? 'Uses Google API key' :
-               'Enter your API endpoint URL'}
-            </CardDescription>
 
         <div className="space-y-2">
-          <Label htmlFor="authType">Authentication Type</Label>
-          <Select
-            value={authType}
-            onValueChange={(value: string) => setAuthType(value as ApiConfig['authType'])}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select auth type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">None</SelectItem>
-              <SelectItem value="bearer" disabled={provider !== 'custom' && authType !== 'bearer'}>
-                Bearer Token
-              </SelectItem>
-              <SelectItem value="basic" disabled={provider !== 'custom'}>
-                Basic Auth
-              </SelectItem>
-              <SelectItem value="custom" disabled={provider !== 'custom'}>
-                Custom
-              </SelectItem>
-            </SelectContent>
-          </Select>
+          <Label htmlFor="apiKey">API Key</Label>
+          <Input
+            id="apiKey"
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder={
+              provider === 'openai' ? 'sk-...' :
+              provider === 'anthropic' ? 'Your Anthropic API key' :
+              provider === 'deepseek' ? 'Your DeepSeek API key' :
+              provider === 'gemini' ? 'Your Google API key' :
+              'Enter API key'
+            }
+            required
+          />
+          <CardDescription className="text-sm">
+            {provider === 'openai' && 'OpenAI API key starts with "sk-"'}
+            {provider === 'anthropic' && 'Anthropic API key starts with "sk-ant-"'}
+            {provider === 'deepseek' && 'DeepSeek API key format'}
+            {provider === 'gemini' && 'Google API key format'}
+          </CardDescription>
         </div>
-
-        {authType !== 'none' && (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="authKey">
-                {authType === 'bearer' ? 'API Key' :
-                 authType === 'basic' ? 'Username' :
-                 'Key'}
-              </Label>
-              <Input
-                id="authKey"
-                value={authKey}
-                onChange={(e) => setAuthKey(e.target.value)}
-                type={authType === 'basic' ? 'text' : 'password'}
-                placeholder={
-                  provider === 'openai' ? 'sk-...' :
-                  provider === 'anthropic' ? 'Your Anthropic API key' :
-                  provider === 'deepseek' ? 'Your DeepSeek API key' :
-                  provider === 'gemini' ? 'Your Google API key' :
-                  authType === 'bearer' ? 'Enter API key' : ''
-                }
-                required={authType === 'bearer' || authType === 'basic' || authType === 'custom'}
-              />
-            </div>
-            {(authType === 'basic' || authType === 'custom') && (
-              <div className="space-y-2">
-                <Label htmlFor="authValue">
-                  {authType === 'basic' ? 'Password' : 'Value'}
-                </Label>
-                <Input
-                  id="authValue"
-                  type="password"
-                  value={authValue}
-                  onChange={(e) => setAuthValue(e.target.value)}
-                  required={authType === 'basic' || authType === 'custom'}
-                />
-              </div>
-            )}
-          </div>
-        )}
 
         <Card className="dark:bg-gray-800/50">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
-              <Label>Headers</Label>
+              <Label>Additional Headers</Label>
               <Button type="button" variant="outline" size="sm" onClick={addHeader}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Header
