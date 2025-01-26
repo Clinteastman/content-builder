@@ -17,6 +17,7 @@ import { InputFieldBuilder } from './components/InputFieldBuilder'
 import { PreviewPane } from './components/PreviewPane'
 import { ImportExportControls } from './components/ImportExportControls'
 import { useTemplateInputs } from './hooks/useTemplateInputs'
+import { ThemeToggle } from './components/ui/theme-toggle'
 import useTemplateStore from './store/templateStore'
 
 export default function App() {
@@ -47,7 +48,10 @@ export default function App() {
         <div className="flex h-16 items-center px-4">
           <div className="flex items-center justify-between flex-1">
             <h2 className="text-lg font-semibold">Prompt Builder</h2>
-            <ImportExportControls />
+            <div className="flex items-center gap-4">
+              <ImportExportControls />
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>
