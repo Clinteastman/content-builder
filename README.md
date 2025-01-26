@@ -9,6 +9,12 @@ Dynamic template creation system with real-time preview capabilities, built with
 - State management with Zustand
 - UI component library
 - Type-safe TypeScript implementation
+- Dark mode support
+- API configuration management
+- Import/Export functionality
+- Resizable interface
+- Settings customization
+- Model service integration
 
 ## Architecture Overview
 ### Technical Stack
@@ -22,13 +28,19 @@ Dynamic template creation system with real-time preview capabilities, built with
 1. **TemplateEditor** - Main configuration interface
 2. **InputFieldBuilder** - Dynamic field creation system
 3. **PreviewPane** - Real-time template visualization
-4. **ThemeProvider** - Unified theming system
+4. **ThemeProvider** - Unified theming system with dark mode
+5. **ApiConfigForm** - API endpoint configuration
+6. **ResizableSidebar** - Adjustable layout system
+7. **ImportExportControls** - Template data management
 
 ### State Management
 Centralized store architecture using Zustand:
 - Template configuration state
 - Field definitions and validation rules
 - UI theme settings
+- API configurations
+- Application settings
+- Model configurations
 
 ## Development Practices
 1. **Component Structure**:
@@ -36,11 +48,14 @@ Centralized store architecture using Zustand:
    - Business logic components in `/components`
    - State management in `/store`
    - Custom hooks in `/hooks`
+   - API services in `/lib`
+   - Page components in `/pages`
 
 2. **Type Definitions**:
    - Centralized types in `/types`
    - Strict TypeScript configuration
    - Component prop typing
+   - API configuration types
 
 Currently, two official plugins are available:
 
@@ -87,4 +102,3 @@ export default tseslint.config({
     ...react.configs['jsx-runtime'].rules,
   },
 })
-```
