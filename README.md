@@ -1,6 +1,46 @@
 # React + TypeScript + Vite
+## Template Builder Application
+ 
+Dynamic template creation system with real-time preview capabilities, built with modern web technologies.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Key Features
+- Dynamic form field configuration
+- Real-time template preview
+- State management with Zustand
+- UI component library
+- Type-safe TypeScript implementation
+
+## Architecture Overview
+### Technical Stack
+- **Framework**: React 18
+- **State Management**: Zustand
+- **Styling**: Tailwind CSS
+- **Build Tool**: Vite
+- **Type Checking**: TypeScript 5+
+
+### Core Components
+1. **TemplateEditor** - Main configuration interface
+2. **InputFieldBuilder** - Dynamic field creation system
+3. **PreviewPane** - Real-time template visualization
+4. **ThemeProvider** - Unified theming system
+
+### State Management
+Centralized store architecture using Zustand:
+- Template configuration state
+- Field definitions and validation rules
+- UI theme settings
+
+## Development Practices
+1. **Component Structure**:
+   - Presentational components in `/components/ui`
+   - Business logic components in `/components`
+   - State management in `/store`
+   - Custom hooks in `/hooks`
+
+2. **Type Definitions**:
+   - Centralized types in `/types`
+   - Strict TypeScript configuration
+   - Component prop typing
 
 Currently, two official plugins are available:
 
