@@ -5,7 +5,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue
 } from '../components/ui/select'
@@ -28,18 +27,11 @@ export default function UsePromptsPage() {
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-6 space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50">Use Prompts</h1>
-        <p className="text-gray-500 dark:text-gray-400">
-          Select a template and fill in the required fields to generate your prompt.
-        </p>
-      </div>
-
+    <div className="max-w-4xl mx-auto space-y-6">
       <Card className="border-2">
         <CardHeader className="pb-4">
           <CardTitle>Template Selection</CardTitle>
-          <CardDescription>Choose a template to get started</CardDescription>
+          <CardDescription>Choose a template to start customizing your prompt</CardDescription>
           <div className="pt-2">
             <Select
               defaultValue={activeTemplate?.id}
@@ -54,7 +46,6 @@ export default function UsePromptsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectLabel>Available Templates</SelectLabel>
                   {templates.map((template) => (
                     <SelectItem key={template.id} value={template.id}>
                       {template.name}

@@ -14,6 +14,7 @@ import { Card } from '../components/ui/card'
 import { TemplateEditor } from '../components/TemplateEditor'
 import { InputFieldBuilder } from '../components/InputFieldBuilder'
 import { PreviewPane } from '../components/PreviewPane'
+import { ImportExportControls } from '../components/ImportExportControls'
 import { useTemplateInputs } from '../hooks/useTemplateInputs'
 import useTemplateStore from '../store/templateStore'
 
@@ -41,21 +42,24 @@ export default function PromptsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Template List */}
-      <div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full md:w-auto justify-start mb-4"
-          onClick={() => setNewTemplateDialogOpen(true)}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          New Template
-        </Button>
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            className="w-full md:w-auto justify-start"
+            onClick={() => setNewTemplateDialogOpen(true)}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            New Template
+          </Button>
+          <ImportExportControls />
+        </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-800 pb-4">
           {templates.map((template) => (
             <Button
+              size="sm"
               key={template.id}
               variant={template.id === activeTemplate?.id ? "secondary" : "ghost"}
               className="justify-start font-normal"
