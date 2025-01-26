@@ -2,63 +2,18 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  --background: 0 0% 100%;
-  --foreground: 240 10% 3.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 240 10% 3.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 3.9%;
-  --primary: 240 5.9% 10%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 240 4.8% 95.9%;
-  --secondary-foreground: 240 5.9% 10%;
-  --muted: 240 4.8% 95.9%;
-  --muted-foreground: 240 3.8% 46.1%;
-  --accent: 240 4.8% 95.9%;
-  --accent-foreground: 240 5.9% 10%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 5.9% 90%;
-  --input: 240 5.9% 90%;
-  --ring: 240 5.9% 10%;
-  --radius: 0.5rem;
-}
-
-@theme .dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 0 0% 98%;
-  --primary-foreground: 240 5.9% 10%;
-  --secondary: 240 3.7% 15.9%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --accent: 240 3.7% 15.9%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --ring: 240 4.9% 83.9%;
-}
-
-/* @base {
+@base {
   * {
-    @apply border-border;
+    @apply border-gray-200 dark:border-gray-800;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-50;
   }
-} */
+}
 
 /* CodeMirror custom styles */
 @utility cm-editor {
-  @apply h-full min-h-[200px] border rounded-md focus-visible:outline-none focus-visible:ring-1;
+  @apply h-full min-h-[200px] border rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-200 dark:focus-visible:ring-gray-800;
 }
 
 @utility cm-scroller {
@@ -66,12 +21,12 @@
 }
 
 @utility cm-special {
-  @apply bg-blue-50 text-blue-600 rounded px-0.5;
+  @apply bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded px-0.5;
 }
 
 /* DnD styles */
 @utility sortable-item {
-  @apply cursor-move;
+  @apply cursor-move text-gray-900 dark:text-gray-50;
 }
 
 @utility sortable-item-dragging {

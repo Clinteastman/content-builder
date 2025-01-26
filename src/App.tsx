@@ -43,11 +43,11 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
+      <div className="border-b border-gray-200 dark:border-gray-800">
         <div className="flex h-16 items-center px-4">
           <div className="flex items-center justify-between flex-1">
-            <h2 className="text-lg font-semibold">Prompt Builder</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">Prompt Builder</h2>
             <div className="flex items-center gap-4">
               <ImportExportControls />
               <ThemeToggle />
@@ -57,7 +57,7 @@ export default function App() {
       </div>
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 border-r bg-muted/40 min-h-[calc(100vh-4rem)] p-4">
+        <div className="w-64 border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40 min-h-[calc(100vh-4rem)] p-4">
           <Button
             variant="outline"
             size="sm"
@@ -116,7 +116,7 @@ export default function App() {
                               <select
                                 value={inputs[field.key] || ''}
                                 onChange={(e) => updateInput(field.key, e.target.value)}
-                                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                className="flex h-9 w-full rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-50 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-400 dark:focus-visible:ring-gray-600"
                               >
                                 <option value="">Select an option</option>
                                 {field.options?.map((option) => (
@@ -140,7 +140,7 @@ export default function App() {
                   </Card>
                 ) : (
                   <Card>
-                    <CardContent className="p-6 text-center text-muted-foreground">
+                    <CardContent className="p-6 text-center text-gray-500 dark:text-gray-400">
                       Add {'{placeholders}'} in your template to create input fields
                     </CardContent>
                   </Card>
@@ -151,8 +151,8 @@ export default function App() {
           ) : (
             <div className="flex h-[calc(100vh-8rem)] items-center justify-center">
               <div className="text-center">
-                <h3 className="text-lg font-medium">No template selected</h3>
-                <p className="text-sm text-muted-foreground mt-1">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-50">No template selected</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   Select a template or create a new one to get started
                 </p>
               </div>

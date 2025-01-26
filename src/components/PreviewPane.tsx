@@ -30,7 +30,7 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ content, isValid }) =>
           disabled={!isValid}
           variant="ghost"
           size="icon"
-          className={copied ? 'text-green-500' : ''}
+          className={copied ? 'text-green-500 dark:text-green-400' : ''}
         >
           {copied ? (
             <Check className="h-4 w-4" />
@@ -42,11 +42,11 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({ content, isValid }) =>
       </CardHeader>
       <CardContent>
         {isValid ? (
-          <pre className="font-mono text-sm whitespace-pre-wrap">
+          <pre className="font-mono text-sm whitespace-pre-wrap text-gray-900 dark:text-gray-50">
             {content}
           </pre>
         ) : (
-          <p className="text-sm text-muted-foreground italic">
+          <p className="text-sm text-gray-500 dark:text-gray-400 italic">
             Please fill in all required fields to preview the template
           </p>
         )}
