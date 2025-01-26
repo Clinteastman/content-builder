@@ -1,17 +1,13 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { DndProvider } from 'react-dnd'
-import { HTML5Backend } from 'react-dnd-html5-backend'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import "./index.css"
 import App from './App'
 import { ThemeProvider } from './components/ui/theme-provider'
-import './index.css'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-      <DndProvider backend={HTML5Backend}>
-        <App />
-      </DndProvider>
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <ThemeProvider defaultTheme="system" storageKey="ui-theme">
+      <App />
     </ThemeProvider>
-  </React.StrictMode>
+  </StrictMode>
 )
