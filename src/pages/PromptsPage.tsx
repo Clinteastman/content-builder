@@ -9,8 +9,17 @@ import {
   DialogTitle,
 } from '../components/ui/dialog'
 import { Input } from '../components/ui/input'
+import { Textarea } from '../components/ui/textarea'
 import { FormItem, FormLabel, FormControl } from '../components/ui/form'
 import { Card } from '../components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select'
 import { TemplateEditor } from '../components/TemplateEditor'
 import { InputFieldBuilder } from '../components/InputFieldBuilder'
 import { PreviewPane } from '../components/PreviewPane'
@@ -91,7 +100,7 @@ export default function PromptsPage() {
           <div className="space-y-6">
             {fields.length > 0 ? (
               <Card>
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-6">
                   {fields.map((field) => (
                     <FormItem key={field.key}>
                       <FormLabel>
@@ -102,25 +111,36 @@ export default function PromptsPage() {
                       </FormLabel>
                       <FormControl>
                         {field.type === 'select' ? (
-                          <select
+                          <Select
+                            value={inputs[field.key] || ''}
+                            onValueChange={(value) => updateInput(field.key, value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={field.placeholder || "Select an option"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                {field.options?.map((option) => (
+                                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        ) : field.type === 'textarea' ? ( 
+                          <Textarea
                             value={inputs[field.key] || ''}
                             onChange={(e) => updateInput(field.key, e.target.value)}
-                            className="flex h-9 w-full rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-50 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-400 dark:focus-visible:ring-gray-600"
-                          >
-                            <option value="">Select an option</option>
-                            {field.options?.map((option) => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
+                            placeholder={field.placeholder || "Enter text..."}
+                            required={field.required}
+                          />
                         ) : (
                           <Input
                             type={field.type}
                             value={inputs[field.key] || ''}
                             onChange={(e) => updateInput(field.key, e.target.value)}
                             required={field.required}
-                          />
+                            placeholder={field.placeholder || (field.type === 'number' ? 'Enter a number...' : 'Enter text...')}
+                           />
                         )}
                       </FormControl>
                     </FormItem>

@@ -10,6 +10,7 @@ import {
 } from '../components/ui/select'
 import { Copy, Send } from 'lucide-react'
 import useTemplateStore from '../store/templateStore'
+import { Textarea } from '../components/ui/textarea'
 import { useTemplateInputs } from '../hooks/useTemplateInputs'
 
 export default function UsePromptsPage() {
@@ -79,7 +80,7 @@ export default function UsePromptsPage() {
                         onValueChange={(value) => updateInput(field.key, value)}
                       >
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select an option" />
+                          <SelectValue placeholder={field.placeholder || "Select an option"} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -91,12 +92,20 @@ export default function UsePromptsPage() {
                           </SelectGroup>
                         </SelectContent>
                       </Select>
+                    ) : field.type === 'textarea' ? (
+                      <Textarea
+                        value={inputs[field.key] || ''}
+                        onChange={(e) => updateInput(field.key, e.target.value)}
+                        placeholder={field.placeholder || "Enter text..."}
+                        required={field.required}
+                      />
                     ) : (
                       <input
                         type={field.type}
                         value={inputs[field.key] || ''}
                         onChange={(e) => updateInput(field.key, e.target.value)}
                         className="flex h-9 w-full rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-3 py-1 text-sm text-gray-900 dark:text-gray-100 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-400 dark:focus-visible:ring-gray-600"
+                        placeholder={field.placeholder || (field.type === 'number' ? 'Enter a number...' : 'Enter text...')}
                         required={field.required}
                       />
                     )}
@@ -106,12 +115,15 @@ export default function UsePromptsPage() {
             </Card>
 
             <Card>
-              <CardHeader className="pb-2">
+              <CardHeader className="pb-0">
                 <CardTitle>Generated Prompt</CardTitle>
                 <CardDescription>Preview of your customized prompt</CardDescription>
               </CardHeader>
-              <CardContent>
-                <pre className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100 p-4 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
+              <CardContent className="pt-4">
+                <pre 
+                  className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100 p-4 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800"
+                  style={{ minHeight: '100px' }}
+                >
                   {output}
                 </pre>
               </CardContent>

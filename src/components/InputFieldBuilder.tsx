@@ -88,7 +88,7 @@ const DraggableField: React.FC<DraggableFieldProps> = ({
               <FormLabel>Field Type</FormLabel>
               <Select
                 value={field.type}
-                onValueChange={(value: 'text' | 'number' | 'select') => {
+                onValueChange={(value: 'text' | 'number' | 'select' | 'textarea') => {
                   setFieldType(field.key, value)
                   onUpdate({ ...field, type: value })
                 }
@@ -101,6 +101,7 @@ const DraggableField: React.FC<DraggableFieldProps> = ({
                   <SelectItem value="text">Text</SelectItem>
                   <SelectItem value="number">Number</SelectItem>
                   <SelectItem value="select">Select</SelectItem>
+                  <SelectItem value="textarea">Textarea</SelectItem>
                 </SelectContent>
               </Select>
             </FormItem>
@@ -141,6 +142,20 @@ const DraggableField: React.FC<DraggableFieldProps> = ({
               <FormDescription>
                 Enter options separated by commas
               </FormDescription>
+            </FormItem>
+          )}
+
+          {field.type === 'textarea' && (
+            <FormItem>
+              <FormLabel>Textarea Settings</FormLabel>
+              <FormControl>
+                <Input
+                  value={field.placeholder || ''}
+                  onChange={(e) => onUpdate({ ...field, placeholder: e.target.value })}
+                  placeholder="Enter placeholder text (optional)"
+                />
+              </FormControl>
+              <FormDescription>Add placeholder text for the textarea</FormDescription>
             </FormItem>
           )}
         </div>
