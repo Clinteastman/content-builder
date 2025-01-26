@@ -1,6 +1,15 @@
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button'
-import { Select } from '../components/ui/select'
+import { 
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue
+} from '../components/ui/select'
+import { Copy, Send } from 'lucide-react'
 import useTemplateStore from '../store/templateStore'
 import { useTemplateInputs } from '../hooks/useTemplateInputs'
 
@@ -10,37 +19,61 @@ export default function UsePromptsPage() {
     activeTemplate?.content || ''
   )
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(output)
+    } catch (err) {
+      console.error('Failed to copy text: ', err)
+    }
+  }
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Use Prompts</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-              Select Template
-            </label>
+    <div className="container max-w-4xl mx-auto py-6 space-y-8">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-50">Use Prompts</h1>
+        <p className="text-gray-500 dark:text-gray-400">
+          Select a template and fill in the required fields to generate your prompt.
+        </p>
+      </div>
+
+      <Card className="border-2">
+        <CardHeader className="pb-4">
+          <CardTitle>Template Selection</CardTitle>
+          <CardDescription>Choose a template to get started</CardDescription>
+          <div className="pt-2">
             <Select
+              defaultValue={activeTemplate?.id}
               value={activeTemplate?.id || ''}
               onValueChange={(value) => {
                 const template = templates.find(t => t.id === value)
                 if (template) setActiveTemplate(template)
               }}
             >
-              <option value="">Select a template</option>
-              {templates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name}
-                </option>
-              ))}
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a template" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectLabel>Available Templates</SelectLabel>
+                  {templates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
             </Select>
           </div>
+        </CardHeader>
 
-          {activeTemplate && (
-            <>
-              {/* Input Fields */}
-              <div className="space-y-4">
+        {activeTemplate && (
+          <CardContent className="pt-6 space-y-6">
+            <Card className="dark:bg-gray-800/50">
+              <CardHeader className="pb-2">
+                <CardTitle>Template Fields</CardTitle>
+                <CardDescription>Fill in the required information</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 {fields.map((field) => (
                   <div key={field.key} className="space-y-2">
                     <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -54,12 +87,18 @@ export default function UsePromptsPage() {
                         value={inputs[field.key] || ''}
                         onValueChange={(value) => updateInput(field.key, value)}
                       >
-                        <option value="">Select an option</option>
-                        {field.options?.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select an option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {field.options?.map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
                       </Select>
                     ) : (
                       <input
@@ -72,30 +111,31 @@ export default function UsePromptsPage() {
                     )}
                   </div>
                 ))}
-              </div>
+              </CardContent>
+            </Card>
 
-              {/* Preview */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  Generated Prompt
-                </label>
-                <div className="rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50 p-4">
-                  <pre className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100">
-                    {output}
-                  </pre>
-                </div>
-              </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle>Generated Prompt</CardTitle>
+                <CardDescription>Preview of your customized prompt</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <pre className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100 p-4 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800">
+                  {output}
+                </pre>
+              </CardContent>
+            </Card>
 
-              {/* Actions */}
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline">Copy</Button>
-                <Button disabled={!isValid}>
-                  Send to Model
-                </Button>
-              </div>
-            </>
-          )}
-        </CardContent>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={handleCopy} className="gap-2">
+                <Copy className="h-4 w-4" />Copy
+              </Button>
+              <Button disabled={!isValid} className="gap-2">
+                <Send className="h-4 w-4" />Send to Model
+              </Button>
+            </div>
+          </CardContent>
+        )}
       </Card>
     </div>
   )

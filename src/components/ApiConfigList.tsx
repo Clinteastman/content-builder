@@ -72,8 +72,20 @@ function ApiConfigCard({ config, onEdit, onDelete, onSetDefault }: ApiConfigCard
       <CardContent className="text-sm">
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-gray-500 dark:text-gray-400">Auth Type:</span>
-            <span className="font-medium capitalize">{config.authType}</span>
+            <span className="text-gray-500 dark:text-gray-400">Provider:</span>
+            <span className="font-medium capitalize">{config.provider === 'custom' ? 'Custom' :
+              config.provider === 'openai' ? 'OpenAI' :
+              config.provider === 'anthropic' ? 'Anthropic' :
+              config.provider === 'deepseek' ? 'DeepSeek' :
+              'Google Gemini'}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-500 dark:text-gray-400">Auth:</span>
+            <span className="font-medium">{config.provider === 'custom' ? 
+              config.authType === 'none' ? 'None' :
+              config.authType === 'bearer' ? 'Bearer Token' :
+              config.authType === 'basic' ? 'Basic Auth' : 'Custom' :
+              'API Key'}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-gray-500 dark:text-gray-400">Headers:</span>

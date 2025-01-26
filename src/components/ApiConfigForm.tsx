@@ -11,8 +11,14 @@ import {
   SelectValue
 } from './ui/select'
 import { Switch } from './ui/switch'
-import { Card, CardContent } from './ui/card'
-import { ApiConfig, ApiHeaderConfig, CreateApiConfigInput, UpdateApiConfigInput } from '../types/api-config'
+import { Card, CardContent, CardDescription } from './ui/card'
+import {
+  ApiConfig,
+  ApiHeaderConfig,
+  CreateApiConfigInput,
+  UpdateApiConfigInput,
+  DEFAULT_PROVIDER_URLS
+} from '../types/api-config'
 
 interface ApiConfigFormProps {
   config?: ApiConfig
@@ -22,8 +28,9 @@ interface ApiConfigFormProps {
 
 export function ApiConfigForm({ config, onSubmit, onCancel }: ApiConfigFormProps) {
   const [name, setName] = useState(config?.name || '')
-  const [url, setUrl] = useState(config?.url || '')
-  const [authType, setAuthType] = useState<ApiConfig['authType']>(config?.authType || 'none')
+  const [provider, setProvider] = useState<ApiConfig['provider']>(config?.provider || 'custom')
+  const [url, setUrl] = useState(config?.url || (provider !== 'custom' ? DEFAULT_PROVIDER_URLS[provider] : ''))
+  const [authType, setAuthType] = useState<ApiConfig['authType']>(config?.authType || (provider !== 'custom' ? 'bearer' : 'none'))
   const [authKey, setAuthKey] = useState(config?.authKey || '')
   const [authValue, setAuthValue] = useState(config?.authValue || '')
   const [headers, setHeaders] = useState<ApiHeaderConfig[]>(config?.headers || [])
@@ -43,10 +50,21 @@ export function ApiConfigForm({ config, onSubmit, onCancel }: ApiConfigFormProps
     setHeaders(headers.filter((_, i) => i !== index))
   }
 
+  const handleProviderChange = (newProvider: ApiConfig['provider']) => {
+    setProvider(newProvider)
+    if (newProvider !== 'custom') {
+      setUrl(DEFAULT_PROVIDER_URLS[newProvider])
+      setAuthType('bearer')
+    } else {
+      setAuthType('none')
+    }
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const formData = {
       name,
+      provider,
       url,
       authType,
       authKey,
@@ -77,21 +95,59 @@ export function ApiConfigForm({ config, onSubmit, onCancel }: ApiConfigFormProps
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="url">URL</Label>
+            <Label htmlFor="provider">Provider</Label>
+            <Select
+              value={provider}
+              onValueChange={handleProviderChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="openai">OpenAI</SelectItem>
+                <SelectItem value="anthropic">Anthropic</SelectItem>
+                <SelectItem value="deepseek">DeepSeek</SelectItem>
+                <SelectItem value="gemini">Google Gemini</SelectItem>
+                <SelectItem value="custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {provider === 'custom' && (
+          <div className="space-y-2">
+            <Label htmlFor="url">API URL</Label>
             <Input
               id="url"
               placeholder="https://api.example.com"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               required
+              readOnly={provider !== 'custom'}
             />
+            {provider !== 'custom' && (
+              <CardDescription className="text-sm">
+                Using predefined API URL for {provider === 'openai' ? 'OpenAI' :
+                  provider === 'anthropic' ? 'Anthropic' :
+                  provider === 'deepseek' ? 'DeepSeek' :
+                  'Google Gemini'}
+              </CardDescription>
+            )}
           </div>
-        </div>
+        )}
+            <CardDescription className="text-sm">
+              {provider === 'custom' ? 'Enter the base URL for your API endpoint' :
+               provider === 'openai' ? 'Uses OpenAI API key (sk-...)' :
+               provider === 'anthropic' ? 'Uses Anthropic API key' :
+               provider === 'deepseek' ? 'Uses DeepSeek API key' :
+               provider === 'gemini' ? 'Uses Google API key' :
+               'Enter your API endpoint URL'}
+            </CardDescription>
 
         <div className="space-y-2">
           <Label htmlFor="authType">Authentication Type</Label>
           <Select
-            value={authType} 
+            value={authType}
             onValueChange={(value: string) => setAuthType(value as ApiConfig['authType'])}
           >
             <SelectTrigger>
@@ -99,9 +155,15 @@ export function ApiConfigForm({ config, onSubmit, onCancel }: ApiConfigFormProps
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">None</SelectItem>
-              <SelectItem value="bearer">Bearer Token</SelectItem>
-              <SelectItem value="basic">Basic Auth</SelectItem>
-              <SelectItem value="custom">Custom</SelectItem>
+              <SelectItem value="bearer" disabled={provider !== 'custom' && authType !== 'bearer'}>
+                Bearer Token
+              </SelectItem>
+              <SelectItem value="basic" disabled={provider !== 'custom'}>
+                Basic Auth
+              </SelectItem>
+              <SelectItem value="custom" disabled={provider !== 'custom'}>
+                Custom
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -110,7 +172,7 @@ export function ApiConfigForm({ config, onSubmit, onCancel }: ApiConfigFormProps
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="authKey">
-                {authType === 'bearer' ? 'Token' :
+                {authType === 'bearer' ? 'API Key' :
                  authType === 'basic' ? 'Username' :
                  'Key'}
               </Label>
@@ -119,6 +181,13 @@ export function ApiConfigForm({ config, onSubmit, onCancel }: ApiConfigFormProps
                 value={authKey}
                 onChange={(e) => setAuthKey(e.target.value)}
                 type={authType === 'basic' ? 'text' : 'password'}
+                placeholder={
+                  provider === 'openai' ? 'sk-...' :
+                  provider === 'anthropic' ? 'Your Anthropic API key' :
+                  provider === 'deepseek' ? 'Your DeepSeek API key' :
+                  provider === 'gemini' ? 'Your Google API key' :
+                  authType === 'bearer' ? 'Enter API key' : ''
+                }
                 required={authType === 'bearer' || authType === 'basic' || authType === 'custom'}
               />
             </div>
