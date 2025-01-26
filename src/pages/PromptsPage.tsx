@@ -120,9 +120,12 @@ export default function PromptsPage() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectGroup>
-                                {field.options?.map((option) => (
-                                  <SelectItem key={option} value={option}>{option}</SelectItem>
-                                ))}
+                                {(field.options || [])
+                                  .filter(Boolean)
+                                  .map((option) => (
+                                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                                  ))
+                                }
                               </SelectGroup>
                             </SelectContent>
                           </Select>

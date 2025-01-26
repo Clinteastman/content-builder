@@ -68,6 +68,7 @@ export default function UsePromptsPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [selectedConfigId, setSelectedConfigId] = useState<string>(getDefaultConfig()?.id || '')
   const [response, setResponse] = useState<string | null>(null)
+  const [streamedResponse, setStreamedResponse] = useState<string>('')
   const [availableModels, setAvailableModels] = useState<ModelConfig[]>([])
   const [selectedModel, setSelectedModel] = useState<string | undefined>(undefined)
 
@@ -143,8 +144,19 @@ export default function UsePromptsPage() {
         hasAuth: Boolean(selectedConfig.authValue)
       })
 
-      const result = await sendPrompt(selectedConfig, { prompt: output, model: selectedModel })
-      setResponse(extractResponseText(result, selectedConfig.provider))
+      // Reset streamed response at the start
+      setStreamedResponse('')
+      
+      const result = await sendPrompt(
+        selectedConfig, 
+        { prompt: output, model: selectedModel },
+        (chunk: string) => {
+          setStreamedResponse(prev => prev + chunk)
+        }
+      )
+      
+      // For non-streaming responses, use the full response
+      if (Object.keys(result).length > 0) setResponse(extractResponseText(result, selectedConfig.provider))
       toast({
         title: "Success",
         description: "Response received from model",
@@ -196,11 +208,13 @@ export default function UsePromptsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {templates.map((template: Template) => (
-                    <SelectItem key={template.id} value={template.id}>
-                      {template.name}
-                    </SelectItem>
-                  ))}
+                  {templates
+                    .filter((template: Template) => template.id)
+                    .map((template: Template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    ))}
                 </SelectGroup>
               </SelectContent>
             </Select>
@@ -233,9 +247,11 @@ export default function UsePromptsPage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            {field.options?.map((option) => (
-                              <SelectItem key={option} value={option}>
-                                {option}
+                            {field.options
+                              ?.filter(option => option && option.trim() !== '')
+                              .map((option) => (
+                              <SelectItem key={option} value={option || 'default'}>
+                                {option || 'Default'}
                               </SelectItem>
                             ))}
                           </SelectGroup>
@@ -289,11 +305,13 @@ export default function UsePromptsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {configs.map((config) => (
-                        <SelectItem key={config.id} value={config.id}>
-                          {config.name}
-                        </SelectItem>
-                      ))}
+                      {configs
+                        .filter(config => config.id)
+                        .map((config) => (
+                          <SelectItem key={config.id} value={config.id}>
+                            {config.name}
+                          </SelectItem>
+                        ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -310,11 +328,13 @@ export default function UsePromptsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {availableModels.map((model) => (
-                        <SelectItem key={model.id} value={model.id}>
-                          {model.name}
-                        </SelectItem>
-                      ))}
+                      {availableModels
+                        .filter(model => model.id)
+                        .map((model) => (
+                          <SelectItem key={model.id} value={model.id}>
+                            {model.name}
+                          </SelectItem>
+                        ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -338,7 +358,7 @@ export default function UsePromptsPage() {
               </Button>
             </div>
 
-            {response && (
+            {(response || streamedResponse) && (
               <Card className="mt-6">
                 <CardHeader>
                   <CardTitle>Model Response</CardTitle>
@@ -348,14 +368,14 @@ export default function UsePromptsPage() {
                 </CardHeader>
                 <CardContent>
                   <pre className="whitespace-pre-wrap text-sm p-4 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-gray-100 dark:border-gray-800">
-                    {response}
+                    {streamedResponse || response}
                   </pre>
                 </CardContent>
                 <CardFooter className="flex justify-end">
                   <Button 
                     variant="outline" 
                     onClick={async () => {
-                      await navigator.clipboard.writeText(response)
+                      await navigator.clipboard.writeText(streamedResponse || response || '')
                       toast({
                         title: "Copied",
                         description: "Response has been copied to your clipboard",

@@ -133,7 +133,7 @@ const DraggableField: React.FC<DraggableFieldProps> = ({
                   onChange={(e) =>
                     onUpdate({
                       ...field,
-                      options: e.target.value.split(',').map((opt) => opt.trim()),
+                      options: e.target.value === '' ? [] : e.target.value.split(',').map(opt => opt.trim()),
                     })
                   }
                   placeholder="Enter options (comma-separated)"

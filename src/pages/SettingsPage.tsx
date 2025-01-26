@@ -2,8 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../co
 import { Label } from '../components/ui/label'
 import { Switch } from '../components/ui/switch'
 import { ApiConfigList } from '../components/ApiConfigList'
+import { useSettingsStore } from '../store/settingsStore'
 
 export default function SettingsPage() {
+  const { streamResponses, setStreamResponses } = useSettingsStore()
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       {/* API Configuration */}
@@ -35,7 +37,10 @@ export default function SettingsPage() {
                 Show model responses as they are generated
               </p>
             </div>
-            <Switch checked={true} onCheckedChange={() => {}} />
+            <Switch 
+              checked={streamResponses} 
+              onCheckedChange={setStreamResponses} 
+            />
           </div>
         </CardContent>
       </Card>

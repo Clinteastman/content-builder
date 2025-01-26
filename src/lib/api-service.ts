@@ -1,4 +1,5 @@
 import { ApiConfig, ApiProvider, LLMResponse } from '../types/api-config'
+import { useSettingsStore } from '../store/settingsStore'
 
 interface ApiRequestOptions {
   prompt: string
@@ -10,6 +11,24 @@ interface ApiRequestOptions {
 interface ProviderEndpoint {
   path: string
   prepareBody: (options: ApiRequestOptions) => Record<string, unknown>
+}
+
+interface StreamingResponse {
+  choices?: Array<{
+    delta?: {
+      content?: string
+    }
+  }>
+  delta?: {
+    text?: string
+  }
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string
+      }>
+    }
+  }>
 }
 
 const PROVIDER_ENDPOINTS: Record<Exclude<ApiProvider, 'custom'>, ProviderEndpoint> = {
@@ -99,7 +118,7 @@ function prepareAuthHeaders(config: ApiConfig): Record<string, string> {
   return headers
 }
 
-export async function sendPrompt(config: ApiConfig, options: ApiRequestOptions) {
+export async function sendPrompt(config: ApiConfig, options: ApiRequestOptions, onChunk?: (chunk: string) => void) {
   // Log the incoming config
   console.log('Sending request with config:', {
     provider: config.provider,
@@ -142,40 +161,112 @@ export async function sendPrompt(config: ApiConfig, options: ApiRequestOptions) 
   console.log('Making request to:', endpoint)
   console.log('Request body:', JSON.stringify(body, null, 2))
 
+  const { streamResponses } = useSettingsStore.getState()
+
   // Make the request
   const response = await fetch(endpoint, {
     method: 'POST',
     headers,
     body: JSON.stringify(body)
   })
-
-  // Handle errors
+  
   if (!response.ok) {
-    const responseText = await response.text()
-    console.error('API Error Response:', responseText)
-
-    let errorMessage: string
-    try {
-      const error = JSON.parse(responseText)
-      errorMessage = error.error?.message || error.error || error.message || 
-        `Request failed with status ${response.status}`
-    } catch {
-      errorMessage = `Request failed with status ${response.status}: ${responseText}`
-    }
-
-    throw new Error(
-      response.status === 401 ? 
-        `Invalid API key for ${config.provider}. Please check your API configuration.` : 
-        errorMessage
-    )
+    await handleError(response)
   }
 
+  if (streamResponses && response.body && onChunk) {
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      
+      buffer += decoder.decode(value, { stream: true })
+      
+      // Process complete lines
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || '' // Keep the last incomplete line in buffer
+      
+      for (const line of lines) {
+        if (line.trim() === '') continue
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6)
+          if (data === '[DONE]') continue
+          try {
+            const parsed = JSON.parse(data) as StreamingResponse
+            const text = extractResponseChunk(parsed, config.provider)
+            if (text) onChunk(text)
+          } catch (e) {
+            console.warn('Failed to parse streaming response:', e)
+          }
+        }
+      }
+    }
+    
+    return {} as LLMResponse // Streaming doesn't return a final response
+  }
+
+  // Non-streaming response handling
+  return handleResponse(response)
+}
+
+async function handleError(response: Response) {
+  // Handle errors
+  const responseText = await response.text()
+  console.error('API Error Response:', responseText)
+
+  let errorMessage: string
+  try {
+    const error = JSON.parse(responseText)
+    errorMessage = error.error?.message || error.error || error.message || 
+      `Request failed with status ${response.status}`
+  } catch {
+    errorMessage = `Request failed with status ${response.status}: ${responseText}`
+  }
+
+  throw new Error(
+    response.status === 401 ? 
+      `Invalid API key for ${response.url}. Please check your API configuration.` : 
+      errorMessage
+  )
+}
+
+async function handleResponse(response: Response) {
   // Parse and return the response
   const result = await response.json()
   console.log('Received response:', {
     status: response.status,
     headers: Object.fromEntries(response.headers.entries())
   })
-
   return result as LLMResponse
+}
+
+function extractResponseChunk(data: StreamingResponse, provider: ApiProvider): string | null {
+  try {
+    switch (provider) {
+      case 'openai':
+        return data.choices?.[0]?.delta?.content || null
+      case 'anthropic':
+        return data.delta?.text || null
+      case 'gemini':
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || null
+      case 'deepseek':
+        return data.choices?.[0]?.delta?.content || null
+      case 'custom':
+        // Try all formats
+        return (
+          data.choices?.[0]?.delta?.content ||
+          data.delta?.text ||
+          data.candidates?.[0]?.content?.parts?.[0]?.text ||
+          null
+        )
+      default:
+        return null
+    }
+  } catch (e) {
+    console.warn('Error extracting chunk:', e)
+    return null
+  }
 }
