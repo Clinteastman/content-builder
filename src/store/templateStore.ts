@@ -86,8 +86,8 @@ function createJSONStorage(): PersistStorage<PersistedState> {
         getItem: (name) => {
           try {
             const str = localStorage.getItem(name)
-            return str ? JSON.parse(str, (key, value) => 
-              key.endsWith('At') ? new Date(value) : value
+            return str ? JSON.parse(str, (_key, value) => 
+              _key.endsWith('At') ? new Date(value) : value
             ) : null
           } catch (error) {
             console.error('Failed to parse persisted state:', error)
@@ -95,7 +95,7 @@ function createJSONStorage(): PersistStorage<PersistedState> {
           }
         },
         setItem: (name, value) => 
-          localStorage.setItem(name, JSON.stringify(value, (key, value) =>
+          localStorage.setItem(name, JSON.stringify(value, (_key, value) =>
             value instanceof Date ? value.toISOString() : value
           )),
         removeItem: (name) => localStorage.removeItem(name)
