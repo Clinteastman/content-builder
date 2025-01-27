@@ -1,0 +1,85 @@
+E-commerce collection page content for {content-type}:
+
+Page title {page-title}.
+
+{write-rewrite} content, make it interesting and human. Include the internal links. minimum of {number of words} words.
+
+{old-content}
+
+Keywords to use in content: 
+
+{keywords}
+
+Include these internal links naturally
+through the content, not bunched together:
+
+{site-links}
+
+Add these FAQ’s: 
+
+{faqs}
+
+Format in html and take into account google best seo practices for 2025. No
+asterisks in content. do not make a story or poetic nonsense. No H1 tag. Use
+<p></p>
+tags for paragraphs. Use class="prose max-w-none” Dont add
+body/header/footer/meta tags. Add FAQ Schema with Script tag and the following
+HTML so the user can read the FAQS. the FAQS should be in an accordion format of
+Daisy UI:
+
+<div class="container mx-auto px-4 py-8">
+  <h2 class="text-2xl font-bold mb-8">Your Questions Answered</h2>
+  <div class="max-w-2xl mx-auto space-y-4">
+    <div class="collapse collapse-plus bg-base-200">
+      <input type="radio" name="my-accordion" checked="checked" />
+      <div class="collapse-title text-xl font-medium">
+        Why choose artificial flowers?
+      </div>
+      <div class="collapse-content">
+        <p class="pt-4">
+          Life gets easier with artificial flowers. No more daily watering or
+          watching beautiful blooms wilt away. They are perfect for anyone with
+          pollen sensitivities and make excellent value for your money. Simply
+          arrange them once and enjoy their beauty without the upkeep.
+        </p>
+      </div>
+    </div>
+
+    <div class="collapse collapse-plus bg-base-200">
+      <input type="radio" name="my-accordion" />
+      <div class="collapse-title text-xl font-medium">
+        Will they stay looking good?
+      </div>
+      <div class="collapse-content">
+        <p class="pt-4">
+          Our artificial flowers stay beautiful for 5-10 years with minimal
+          care. A quick dust now and then keeps them fresh, and placing them
+          away from direct sun helps maintain their colours. When you consider
+          how many fresh bouquets that replaces, they make smart financial
+          sense.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+Do not make a story or poetic language. Do not use markdown. NO ASTERISKS in
+CONTENT. DO NOT USE THESE WORDS: Discover, Step into, the world of, Endeavour,
+In lieu of, Notwithstanding, In conjunction with, Landscape, Realm, Navigating,
+Tailored, Underpins, Unveil, Transformative, Encompass, Dynamic, World,
+Ecosystem, Confluence, Facilitate, Engaging, Quest, Solutions, Delving,
+Significant, However, Implement, In order to, Pertaining to, Regarding,
+Subsequently, Thus, Therefore, Moreover, Facilitate, Prior to, In the event of,
+Owing to, In the light of, On the contrary, In the midst of, Despite, In
+accordance with, With regard to, Subsequent to, Commence, In addition,
+Ultimately, In addition, Informed decision, Dive in, Delve, Fascinating world,
+Performing your research, Doing your research, Explore the world of,
+Consequently, Utilize, However, Implement, In order to, Unsatisfied, Craft,
+Glean, Glance, Enhance, Enhancing, Elevate, holiday, hello there, alan
+titchmarsh, the joys of, the wonders of, wonderland, lovers, hello, transform,
+hullo, enthusiasts, hello, young, monty don, find, backyard, phil spencer,
+nifty, hey there, spot, Kevin McCloud, dance, art Here is the content(Humanise
+this content and make it more natural, human and compelling. Keep it simple and
+easy to read. No poetic nonsense.):
+
+OUTPUT:

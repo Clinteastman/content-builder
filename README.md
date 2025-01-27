@@ -57,6 +57,26 @@ Centralized store architecture using Zustand:
    - Component prop typing
    - API configuration types
 
+3. **Examples**:
+   - Located in `/examples` directory
+   - Contains reference content and usage examples
+   - Helps demonstrate template formatting and structure
+
+## Deployment
+
+### Plesk Configuration
+When deploying through Plesk's Git functionality, add the following to the "Additional deployment actions" section:
+
+```bash
+(command -v bun || (curl -fsSL https://bun.sh/install | BUIN_INSTALL="$HOME/.bun" bash && export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH")) && (export BUN_INSTALL="$HOME/.bun" && export PATH="$BUN_INSTALL/bin:$PATH" && bun install && bun run build && mv dist/* .)
+```
+
+This configuration will:
+1. Install Bun package manager if not already installed
+2. Install project dependencies
+3. Build the application
+4. Move the built files to the document root
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
