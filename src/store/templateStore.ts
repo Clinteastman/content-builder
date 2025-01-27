@@ -20,7 +20,7 @@ const useTemplateStore = create<TemplateStore>()(
       templates: [],
       activeTemplate: null,
       setActiveTemplate: (template) => set({ activeTemplate: template }),
-      setFieldType: (key: string, type: 'text' | 'number' | 'select') => set((state) => {
+      setFieldType: (key: string, type: 'text' | 'number' | 'select' | 'textarea') => set((state) => {
         if (!state.activeTemplate) return state
         
         const updatedTemplate = {
