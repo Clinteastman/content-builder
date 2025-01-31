@@ -84,7 +84,7 @@ export default function UsePromptsPage() {
         if (selectedConfig.provider === 'openai') {
           // Filter out models that contain keywords "vision", "audio", or "whisper" (case-insensitive)
           filteredModels = models.filter(model => 
-            !/(vision|audio|whisper)/i.test(model.id)
+            !/(vision|audio|whisper|dall|tts|text|omni|babbage|realtime|davinci)/i.test(model.id)
           )
         }
         setAvailableModels(filteredModels)
