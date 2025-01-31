@@ -38,9 +38,7 @@ const PROVIDER_ENDPOINTS: Record<Exclude<ApiProvider, 'custom'>, ProviderEndpoin
       model: options.model || 'gpt-3.5-turbo',
       messages: [{ role: 'user', content: options.prompt }],
       temperature: options.temperature ?? 0.7,
-      max_tokens: options.maxTokens ?? 1000,
-      // Add stream parameter based on settings
-      stream: useSettingsStore.getState().streamResponses
+      max_tokens: options.maxTokens ?? 1000
     })
   },
   anthropic: {
@@ -180,58 +178,34 @@ export async function sendPrompt(config: ApiConfig, options: ApiRequestOptions, 
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
-
+    
     while (true) {
       const { done, value } = await reader.read()
       if (done) break
-
+      
       buffer += decoder.decode(value, { stream: true })
-
+      
       // Process complete lines
       const lines = buffer.split('\n')
       buffer = lines.pop() || '' // Keep the last incomplete line in buffer
-
+      
       for (const line of lines) {
         if (line.trim() === '') continue
-        // Support lines with or without the "data: " prefix
-        const trimmedLine = line.trim()
-        const dataStr = trimmedLine.startsWith('data: ') ? trimmedLine.slice(6) : trimmedLine
-        if (dataStr === '[DONE]') continue
-        try {
-          const parsed = JSON.parse(dataStr) as StreamingResponse
-          const text = extractResponseChunk(parsed, config.provider)
-          if (text) {
-            console.log('Streaming chunk received:', text)
-            onChunk(text)
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6)
+          if (data === '[DONE]') continue
+          try {
+            const parsed = JSON.parse(data) as StreamingResponse
+            const text = extractResponseChunk(parsed, config.provider)
+            if (text) onChunk(text)
+          } catch (e) {
+            console.warn('Failed to parse streaming response:', e)
           }
-        } catch (e) {
-          console.warn('Failed to parse streaming response:', e)
         }
       }
     }
     
-    // Process any remaining data in the buffer
-    if (buffer.trim()) {
-      const lines = buffer.split('\n')
-      for (const line of lines) {
-        if (line.trim() === '') continue
-        const trimmedLine = line.trim()
-        const dataStr = trimmedLine.startsWith('data: ') ? trimmedLine.slice(6) : trimmedLine
-        if (dataStr === '[DONE]') continue
-        try {
-          const parsed = JSON.parse(dataStr) as StreamingResponse
-          const text = extractResponseChunk(parsed, config.provider)
-          if (text) {
-            console.log('Final streaming chunk received:', text)
-            onChunk(text)
-          }
-        } catch (e) {
-          console.warn('Failed to parse final streaming response:', e)
-        }
-      }
-    }
-
-    return {} as LLMResponse // Streaming doesn't return a final consolidated response
+    return {} as LLMResponse // Streaming doesn't return a final response
   }
 
   // Non-streaming response handling
@@ -246,15 +220,15 @@ async function handleError(response: Response) {
   let errorMessage: string
   try {
     const error = JSON.parse(responseText)
-    errorMessage = error.error?.message || error.error || error.message ||
+    errorMessage = error.error?.message || error.error || error.message || 
       `Request failed with status ${response.status}`
   } catch {
     errorMessage = `Request failed with status ${response.status}: ${responseText}`
   }
 
   throw new Error(
-    response.status === 401 ?
-      `Invalid API key for ${response.url}. Please check your API configuration.` :
+    response.status === 401 ? 
+      `Invalid API key for ${response.url}. Please check your API configuration.` : 
       errorMessage
   )
 }

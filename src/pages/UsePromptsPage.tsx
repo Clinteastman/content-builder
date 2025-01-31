@@ -80,8 +80,15 @@ export default function UsePromptsPage() {
     setIsLoading(true)
     fetchAvailableModels(selectedConfig)
       .then(models => {
-        setAvailableModels(models)
-        setSelectedModel(models[0]?.id || selectedConfig.selectedModel)
+        let filteredModels = models;
+        if (selectedConfig.provider === 'openai') {
+          // Filter out models that contain keywords "vision", "audio", or "whisper" (case-insensitive)
+          filteredModels = models.filter(model => 
+            !/(vision|audio|whisper)/i.test(model.id)
+          )
+        }
+        setAvailableModels(filteredModels)
+        setSelectedModel(filteredModels[0]?.id || selectedConfig.selectedModel)
       })
       .catch(error => {
         toast({ title: "Failed to fetch models", description: error.message, variant: "destructive" })
