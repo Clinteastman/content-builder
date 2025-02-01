@@ -27,6 +27,8 @@ import {
 } from '../types/api-config'
 import { fetchAvailableModels } from '../lib/models-service'
 import CodeEditor from '../components/CodeEditor'
+import axios, { AxiosError } from 'axios'
+import CodeMirrorHeatmap from '../components/CodeMirrorHeatmap'
 
 interface Template {
   id: string
@@ -72,6 +74,7 @@ export default function UsePromptsPage() {
   const [streamedResponse, setStreamedResponse] = useState<string>('')
   const [availableModels, setAvailableModels] = useState<ModelConfig[]>([])
   const [selectedModel, setSelectedModel] = useState<string | undefined>(undefined)
+  const [saplingHeatData, setSaplingHeatData] = useState<{ score: number; sentence: string }[]>([])
 
   const selectedConfig = configs.find((config: ApiConfig) => config.id === selectedConfigId)
 
@@ -194,6 +197,30 @@ export default function UsePromptsPage() {
       toast({ title: "API Error", description: errorMessage, variant: "destructive" })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleSaplingTest = async () => {
+    const text = streamedResponse || response || ''
+    if (!text) {
+      toast({ title: "No Response", description: "No response available to test", variant: "destructive" })
+      return
+    }
+    try {
+      const { data, status } = await axios.post(
+        'https://api.sapling.ai/api/v1/aidetect',
+        { key: '54W0YCRJBT3HJ9Q5LG9NHITZP06XOND6', text }
+      )
+      console.log({ status })
+      console.log(JSON.stringify(data, null, 4))
+      setSaplingHeatData(data.sentence_scores || [])
+      toast({ title: "Sapling Detector", description: "Check console for detector response", variant: "success" })
+    } catch (err: unknown) {
+      const error = err as AxiosError
+      const errorData = (error.response?.data || {}) as { msg?: string }
+      const message = errorData.msg || error.message
+      console.error(message)
+      toast({ title: "Detector API Error", description: message, variant: "destructive" })
     }
   }
 
@@ -375,12 +402,22 @@ export default function UsePromptsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <CodeEditor 
-                    value={streamedResponse || response || ''} 
-                    onChange={() => {}} 
-                    isDark={true}
-                    placeholder="Response will appear here..."
-                  />
+                  {saplingHeatData.length > 0 ? (
+                    <CodeMirrorHeatmap 
+                      value={streamedResponse || response || ''} 
+                      onChange={() => {}} 
+                      isDark={true}
+                      placeholder="Response will appear here..."
+                      heatData={saplingHeatData}
+                    />
+                  ) : (
+                    <CodeEditor 
+                      value={streamedResponse || response || ''} 
+                      onChange={() => {}} 
+                      isDark={true}
+                      placeholder="Response will appear here..."
+                    />
+                  )}
                 </CardContent>
                 <CardFooter className="flex justify-end">
                   <Button 
@@ -394,6 +431,13 @@ export default function UsePromptsPage() {
                       })
                     }}>
                     <Copy className="h-4 w-4 mr-2" />Copy Response
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={handleSaplingTest}
+                    className="ml-2"
+                  >
+                    Test Sapling Detector
                   </Button>
                 </CardFooter>
               </Card>
