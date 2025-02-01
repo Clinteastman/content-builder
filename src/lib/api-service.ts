@@ -38,7 +38,7 @@ const PROVIDER_ENDPOINTS: Record<Exclude<ApiProvider, 'custom'>, ProviderEndpoin
       model: options.model || 'gpt-3.5-turbo',
       messages: [{ role: 'user', content: options.prompt }],
       temperature: options.temperature ?? 0.7,
-      max_tokens: options.maxTokens ?? 1000
+      max_completion_tokens: options.maxTokens ?? 1000  // Changed from max_tokens to max_completion_tokens
     })
   },
   anthropic: {
@@ -156,12 +156,16 @@ export async function sendPrompt(config: ApiConfig, options: ApiRequestOptions, 
       max_tokens: options.maxTokens ?? 1000
     }
   }
+  
+  // Extract streaming flag and add it to the request body when using OpenAI
+  const { streamResponses } = useSettingsStore.getState()
+  if (streamResponses && config.provider === 'openai') {
+    body = { ...body, stream: true }
+  }
 
   // Log request details
   console.log('Making request to:', endpoint)
   console.log('Request body:', JSON.stringify(body, null, 2))
-
-  const { streamResponses } = useSettingsStore.getState()
 
   // Make the request
   const response = await fetch(endpoint, {
@@ -201,6 +205,19 @@ export async function sendPrompt(config: ApiConfig, options: ApiRequestOptions, 
           } catch (e) {
             console.warn('Failed to parse streaming response:', e)
           }
+        }
+      }
+    }
+    // Process any remaining buffer content
+    if (buffer.trim() !== '' && buffer.startsWith('data: ')) {
+      const data = buffer.slice(6)
+      if (data !== '[DONE]') {
+        try {
+          const parsed = JSON.parse(data) as StreamingResponse
+          const text = extractResponseChunk(parsed, config.provider)
+          if (text) onChunk(text)
+        } catch (e) {
+          console.warn('Failed to parse final streaming response:', e)
         }
       }
     }
