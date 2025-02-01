@@ -1,4 +1,4 @@
-import { Toast, ToastProvider, ToastViewport } from "./toast"
+import { Toast, ToastProvider, ToastViewport, ToastClose } from "./toast"
 import { useToast } from "../../hooks/useToast"
 
 export function Toaster() {
@@ -13,6 +13,7 @@ export function Toaster() {
             {description && <div className="text-sm opacity-90">{description}</div>}
           </div>
           {action}
+         <ToastClose />
         </Toast>
       ))}
       <ToastViewport />
