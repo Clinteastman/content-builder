@@ -12,9 +12,9 @@
 }
 
 /* CodeMirror custom styles */
-@utility cm-editor {
+/* @utility cm-editor {
   @apply h-full min-h-[200px] border rounded-md focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-200 dark:focus-visible:ring-gray-800;
-}
+} */
 
 @utility cm-scroller {
   @apply font-mono text-sm;
