@@ -26,6 +26,7 @@ import {
   isDeepseekResponse 
 } from '../types/api-config'
 import { fetchAvailableModels } from '../lib/models-service'
+import CodeEditor from '../components/CodeEditor'
 
 interface Template {
   id: string
@@ -374,9 +375,12 @@ export default function UsePromptsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <pre className="whitespace-pre-wrap text-sm p-4 bg-gray-50 dark:bg-gray-800/50 rounded-md border border-gray-100 dark:border-gray-800">
-                    {streamedResponse || response}
-                  </pre>
+                  <CodeEditor 
+                    value={streamedResponse || response || ''} 
+                    onChange={() => {}} 
+                    isDark={true}
+                    placeholder="Response will appear here..."
+                  />
                 </CardContent>
                 <CardFooter className="flex justify-end">
                   <Button 
