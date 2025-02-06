@@ -75,6 +75,13 @@ export default function UsePromptsPage() {
   const [availableModels, setAvailableModels] = useState<ModelConfig[]>([])
   const [selectedModel, setSelectedModel] = useState<string | undefined>(undefined)
   const [saplingHeatData, setSaplingHeatData] = useState<{ score: number; sentence: string }[]>([])
+  const [isSaplingLoading, setIsSaplingLoading] = useState(false)
+  const avgSapling = saplingHeatData.length > 0 
+    ? saplingHeatData.reduce((sum, { score }) => sum + score, 0) / saplingHeatData.length
+    : 0;
+  const saplingSummary = saplingHeatData.length > 0 
+    ? `Avg Score: ${avgSapling.toFixed(2)}`
+    : "No Sapling Data";
 
   const selectedConfig = configs.find((config: ApiConfig) => config.id === selectedConfigId)
 
@@ -99,6 +106,11 @@ export default function UsePromptsPage() {
       })
       .finally(() => setIsLoading(false))
   }, [selectedConfigId, selectedConfig, toast])
+
+  // Reset heatmap when a new response is generated
+  useEffect(() => {
+    setSaplingHeatData([])
+  }, [response, streamedResponse])
 
   const handleCopy = async () => {
     try {
@@ -206,6 +218,7 @@ export default function UsePromptsPage() {
       toast({ title: "No Response", description: "No response available to test", variant: "destructive" })
       return
     }
+    setIsSaplingLoading(true)
     try {
       const { data, status } = await axios.post(
         'https://api.sapling.ai/api/v1/aidetect',
@@ -221,6 +234,8 @@ export default function UsePromptsPage() {
       const message = errorData.msg || error.message
       console.error(message)
       toast({ title: "Detector API Error", description: message, variant: "destructive" })
+    } finally {
+      setIsSaplingLoading(false)
     }
   }
 
@@ -329,68 +344,73 @@ export default function UsePromptsPage() {
               </CardContent>
             </Card>
 
-            <div className="flex justify-end items-center space-x-2">
-              {configs.length > 0 && (
-                <Select
-                  value={selectedConfigId || ''}
-                  onValueChange={setSelectedConfigId}
-                >
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Select API config" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {configs
-                        .filter(config => config.id)
-                        .map((config) => (
-                          <SelectItem key={config.id} value={config.id}>
-                            {config.name}
-                          </SelectItem>
-                        ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              )}
-
-              {availableModels.length > 0 && (
-                <Select
-                  value={selectedModel || ''}
-                  onValueChange={setSelectedModel}
-                  disabled={!selectedConfig || availableModels.length === 0}
-                >
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Select model" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {availableModels
-                        .filter(model => model.id)
-                        .map((model) => (
-                          <SelectItem key={model.id} value={model.id}>
-                            {model.name}
-                          </SelectItem>
-                        ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              )}
-
-              <Button variant="outline" onClick={handleCopy} className="gap-2">
-                <Copy className="h-4 w-4" />Copy
-              </Button>
-
-              <Button
-                onClick={handleSend}
-                disabled={!isValid || !selectedConfig || !selectedModel || isLoading}
-                className="gap-2"
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4" />
+              <div className="flex items-center justify-between">
+                <div className="sapling-summary text-sm text-gray-600">
+                  {saplingSummary}
+                </div>
+              <div className="flex justify-end items-center space-x-2">
+                {configs.length > 0 && (
+                  <Select
+                    value={selectedConfigId || ''}
+                    onValueChange={setSelectedConfigId}
+                  >
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select API config" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {configs
+                          .filter(config => config.id)
+                          .map((config) => (
+                            <SelectItem key={config.id} value={config.id}>
+                              {config.name}
+                            </SelectItem>
+                          ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
                 )}
-                Send to Model
-              </Button>
+
+                {availableModels.length > 0 && (
+                  <Select
+                    value={selectedModel || ''}
+                    onValueChange={setSelectedModel}
+                    disabled={!selectedConfig || availableModels.length === 0}
+                  >
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {availableModels
+                          .filter(model => model.id)
+                          .map((model) => (
+                            <SelectItem key={model.id} value={model.id}>
+                              {model.name}
+                            </SelectItem>
+                          ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                )}
+
+                <Button variant="outline" onClick={handleCopy} className="gap-2">
+                  <Copy className="h-4 w-4" />Copy
+                </Button>
+
+                <Button
+                  onClick={handleSend}
+                  disabled={!isValid || !selectedConfig || !selectedModel || isLoading}
+                  className="gap-2"
+              >
+                    {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  Send to Model
+                </Button>
+                </div>
             </div>
 
             {(response || streamedResponse) && (
@@ -419,7 +439,11 @@ export default function UsePromptsPage() {
                     />
                   )}
                 </CardContent>
-                <CardFooter className="flex justify-end">
+                <CardFooter className="flex justify-end items-center space-x-2">
+                  <div className="sapling-summary flex items-center space-x-1">
+                    <div style={{ backgroundColor: `rgba(255, 0, 0, ${avgSapling})`, width: "14px", height: "14px", borderRadius: "50%" }}></div>
+                    <span className="text-sm font-semibold text-gray-700">{saplingSummary}</span>
+                  </div>
                   <Button 
                     variant="outline" 
                     onClick={async () => {
@@ -435,9 +459,15 @@ export default function UsePromptsPage() {
                   <Button 
                     variant="outline"
                     onClick={handleSaplingTest}
-                    className="ml-2"
+                    disabled={isSaplingLoading}
                   >
-                    Test Sapling Detector
+                    {isSaplingLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />Testing...
+                      </>
+                    ) : (
+                      "Test Sapling Detector"
+                    )}
                   </Button>
                 </CardFooter>
               </Card>

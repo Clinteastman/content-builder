@@ -3,12 +3,14 @@ import CodeMirror from '@uiw/react-codemirror'
 import { EditorView } from '@codemirror/view'
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { tags as t } from '@lezer/highlight'
+import { Extension } from '@codemirror/state'
 
 export interface CodeEditorProps {
   value: string
   onChange: (value: string) => void
   placeholder?: string
   isDark?: boolean
+  extensions?: Extension[]
 }
 
 const createHighlightStyle = (isDark: boolean) => HighlightStyle.define([
@@ -74,9 +76,10 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   value,
   onChange,
   placeholder = '',
-  isDark = false
+  isDark = false,
+  extensions = []
 }) => {
-  const extensions = useMemo(() => [
+  const editorExtensions = useMemo(() => [
     syntaxHighlighting(createHighlightStyle(isDark)),
     isDark ? darkTheme : lightTheme,
     EditorView.lineWrapping,
@@ -92,14 +95,15 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         padding: '0 2px',
         borderRadius: '2px'
       }
-    })
-  ], [isDark])
+    }),
+    ...extensions
+  ], [isDark, extensions])
 
   return (
     <CodeMirror
       value={value}
       onChange={onChange}
-      extensions={extensions}
+      extensions={editorExtensions}
       placeholder={placeholder}
       basicSetup={{
         lineNumbers: true,

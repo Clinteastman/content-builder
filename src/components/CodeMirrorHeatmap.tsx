@@ -1,5 +1,5 @@
-import React from 'react'
 import CodeEditor from './CodeEditor'
+import { saplingHighlightExtension, SentenceRange } from '../extensions/saplingHighlightExtension'
 
 interface SentenceScore {
 	score: number
@@ -14,20 +14,36 @@ interface CodeMirrorHeatmapProps {
 	placeholder?: string
 }
 
+// Dummy function to compute sentence ranges from the text.
+const getSentenceRanges = (text: string): SentenceRange[] => {
+  // This example uses a simple period-split.
+  const ranges: SentenceRange[] = [] // changed from 'let' to 'const'
+  let pos = 0
+  text.split('.').forEach(sentence => {
+    const trimmed = sentence.trim()
+    if (trimmed) {
+      const start = text.indexOf(trimmed, pos)
+      const end = start + trimmed.length
+      ranges.push({ from: start, to: end, sentence: trimmed })
+      pos = end
+    }
+  })
+  return ranges
+}
+
 const CodeMirrorHeatmap = ({ value, onChange, heatData, isDark, placeholder }: CodeMirrorHeatmapProps) => {
-	// For simplicity, each sentence gets a fixed height block.
+	// Create the highlight extension using the current text.
+  const highlightExt = saplingHighlightExtension(heatData, () => getSentenceRanges(value))
 	return (
 		<div style={{ position: 'relative', display: 'flex' }}>
-			{/* CodeEditor area */}
-			<CodeEditor value={value} onChange={onChange} isDark={isDark} placeholder={placeholder} />
-			{/* Heatmap overlay */}
-			<div style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: '10px' }}>
-				{heatData.map((s, i) => {
-					const intensity = Math.round(255 * (1 - s.score))
-					const bgColor = `rgb(${intensity}, ${255 - intensity}, 0)`
-					return <div key={i} style={{ height: '20px', background: bgColor }} title={s.sentence} />
-				})}
-			</div>
+			{/* CodeEditor area with an extra extensions prop */}
+			<CodeEditor 
+        value={value} 
+        onChange={onChange} 
+        isDark={isDark} 
+        placeholder={placeholder}
+				extensions={[highlightExt]} 
+      />
 		</div>
 	)
 }
